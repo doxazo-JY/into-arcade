@@ -81,7 +81,7 @@ export default async function AdminPage({
           )}
         </div>
         <div className="flex flex-col items-end gap-1 text-sm font-bold">
-          <Link href="/admin" className="text-team-blue-ink underline">
+          <Link href="/admin/into" className="text-team-blue-ink underline">
             진행자 홈으로
           </Link>
           <Link

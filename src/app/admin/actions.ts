@@ -9,7 +9,7 @@ import { revalidatePath } from "next/cache";
 export async function deleteRoom(roomCode: string, adminToken: string) {
   const room = await assertAdmin(roomCode, adminToken);
   await prisma.room.delete({ where: { id: room.id } });
-  revalidatePath("/admin");
+  revalidatePath("/admin/into");
 }
 
 // "현재 방"은 별도 상태값 없이 createdAt이 가장 최신인 방으로 정하므로
@@ -20,6 +20,6 @@ export async function deleteRoom(roomCode: string, adminToken: string) {
 export async function relinkRoom(roomCode: string, adminToken: string) {
   const room = await assertAdmin(roomCode, adminToken);
   await prisma.room.update({ where: { id: room.id }, data: { createdAt: new Date() } });
-  revalidatePath("/admin");
+  revalidatePath("/admin/into");
   revalidatePath(`/admin/${roomCode}/${adminToken}`);
 }

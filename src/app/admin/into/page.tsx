@@ -3,12 +3,13 @@ import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import LinksPanel from "@/components/LinksPanel";
 import SceneDecoration from "@/components/SceneDecoration";
-import DeleteRoomButton from "./DeleteRoomButton";
-import RelinkRoomButton from "./RelinkRoomButton";
+import DeleteRoomButton from "../DeleteRoomButton";
+import RelinkRoomButton from "../RelinkRoomButton";
 
 // 방 목록(진행자 토큰 포함)을 보여주는 페이지라 참가자에게 공유되지 않는다.
-// 이 URL을 안다는 것 자체가 유일한 보호 — /play가 인증 없이 코드만으로
-// 열리는 것과 같은 방식.
+// /admin이 아니라 /admin/into로 한 단계 더 숨겨둔 것도 같은 이유 — /admin은
+// 아무나 짐작해서 찍어볼 수 있는 흔한 경로라서, "into"(청년부 이름)라는
+// 짐작하기 어려운 세그먼트를 하나 더 요구하게 함(2026-08-10).
 export const dynamic = "force-dynamic";
 
 export default async function AdminHomePage() {
@@ -29,7 +30,7 @@ export default async function AdminHomePage() {
 
       <div className="relative z-10 flex flex-col gap-6">
       <Link
-        href="/new"
+        href="/admin/into/new"
         className="border-2 border-ink bg-team-red px-6 py-5 text-center text-lg font-black text-white shadow-sticker-sm active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
       >
         ▶ 새 게임방 만들기
