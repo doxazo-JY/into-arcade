@@ -8,7 +8,7 @@ import { revalidatePath } from "next/cache";
 
 // 팀 접속은 토큰이 아니라 "지금 진행 중인(가장 최근에 만든) 방"과 팀
 // 번호만으로 이뤄진다 — 참가자에게 공유되지 않는 URL이라는 것 자체가
-// 유일한 보호이고, 이 앱의 다른 참가자용 화면(중계 화면)도 동일한 방식이다.
+// 유일한 보호이다.
 async function requireTeam(teamNo: 1 | 2) {
   const room = await getCurrentRoom();
   if (!room) {
@@ -26,7 +26,7 @@ async function requireTeam(teamNo: 1 | 2) {
 // 팀 이름은 방 생성 시 진행자가 기본값("1팀"/"2팀")으로 남겨뒀을 때만
 // 입장 화면에서 한 번 입력받는다 — 진행자가 이미 실제 이름을 정했으면
 // 다시 물어보지 않는다(이름이 기본값이 아니게 된 시점부터는 "이미 정해짐"
-// 으로 간주). 중계 화면에 그대로 노출되는 값이라 언제든 바꿀 수 있게
+// 으로 간주). 진행자 화면에 그대로 노출되는 값이라 언제든 바꿀 수 있게
 // 하진 않음 — 입장 시 한 번만.
 export async function setTeamName(teamNo: 1 | 2, name: string) {
   const trimmed = name.trim();

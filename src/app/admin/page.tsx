@@ -7,7 +7,7 @@ import DeleteRoomButton from "./DeleteRoomButton";
 import RelinkRoomButton from "./RelinkRoomButton";
 
 // 방 목록(진행자 토큰 포함)을 보여주는 페이지라 참가자에게 공유되지 않는다.
-// 이 URL을 안다는 것 자체가 유일한 보호 — /watch가 인증 없이 코드만으로
+// 이 URL을 안다는 것 자체가 유일한 보호 — /play가 인증 없이 코드만으로
 // 열리는 것과 같은 방식.
 export const dynamic = "force-dynamic";
 
@@ -47,7 +47,6 @@ export default async function AdminHomePage() {
           links={[
             { label: "1팀 접속", url: `${origin}/play/1` },
             { label: "2팀 접속", url: `${origin}/play/2` },
-            { label: "중계 화면 (TV용)", url: `${origin}/watch` },
           ]}
           defaultOpen
         />

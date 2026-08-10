@@ -37,12 +37,6 @@ export default async function Home() {
             >
               2팀 접속
             </Link>
-            <Link
-              href="/watch"
-              className="border-2 border-ink bg-paper-2 px-6 py-5 text-lg font-black shadow-sticker-sm active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
-            >
-              중계 화면 열기
-            </Link>
           </div>
         </HomeGate>
       </div>

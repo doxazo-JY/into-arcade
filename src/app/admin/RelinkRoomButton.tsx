@@ -15,7 +15,7 @@ export default function RelinkRoomButton({
 
   function onClick(e: React.MouseEvent) {
     e.preventDefault();
-    if (!confirm(`${code} 방을 다시 "현재 진행 중"으로 연결할까요?\n참가자 링크(1팀/2팀/중계)가 전부 이 방을 가리키게 됩니다.`)) {
+    if (!confirm(`${code} 방을 다시 "현재 진행 중"으로 연결할까요?\n참가자 링크(1팀/2팀)가 전부 이 방을 가리키게 됩니다.`)) {
       return;
     }
     setError(null);

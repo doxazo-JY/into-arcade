@@ -69,7 +69,7 @@ export default async function AdminPage({
           </p>
           {isCurrent ? (
             <p className="mt-1 text-xs font-black text-win-ink">
-              ★ 지금 참가자 링크(1팀/2팀/중계)가 연결된 방입니다
+              ★ 지금 참가자 링크(1팀/2팀)가 연결된 방입니다
             </p>
           ) : (
             <div className="mt-1 flex items-center gap-2">
