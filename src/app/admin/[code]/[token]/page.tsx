@@ -121,7 +121,14 @@ export default async function AdminPage({
               {joined ? (
                 <p className="text-xs font-semibold text-win-ink">✓ 입장 완료</p>
               ) : (
-                <p className="text-xs font-semibold text-ink-faint">입장 전</p>
+                <p className="inline-flex items-center gap-2 text-xs font-semibold text-ink-faint">
+                  입장 전
+                  <span className="flex gap-1">
+                    <span className="wait-dot h-1.5 w-1.5 rounded-full bg-ink-faint" />
+                    <span className="wait-dot h-1.5 w-1.5 rounded-full bg-ink-faint" />
+                    <span className="wait-dot h-1.5 w-1.5 rounded-full bg-ink-faint" />
+                  </span>
+                </p>
               )}
               <p className="text-2xl font-black tabular-nums">
                 {toPoints(team.currentPoints).toLocaleString()}P

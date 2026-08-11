@@ -213,7 +213,12 @@ export default async function PlayPage({
           )}
 
           {(!round || round.status === "WAITING") && (
-            <div className="flex flex-col items-center gap-2 border-2 border-dashed border-ink-faint p-6 text-center">
+            <div className="flex flex-col items-center gap-3 border-2 border-dashed border-ink-faint p-6 text-center">
+              <div className="flex gap-1.5">
+                <span className="wait-dot h-2 w-2 rounded-full bg-ink-faint" />
+                <span className="wait-dot h-2 w-2 rounded-full bg-ink-faint" />
+                <span className="wait-dot h-2 w-2 rounded-full bg-ink-faint" />
+              </div>
               <p className="font-bold text-ink-soft">
                 {opponentJoined ? "라운드 시작을 기다리고 있어요" : "상대팀 입장을 기다리고 있어요"}
               </p>
