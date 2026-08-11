@@ -10,6 +10,7 @@ import EventPanel from "./EventPanel";
 export default function GameFlowPanel({
   roomCode,
   adminToken,
+  roundNo,
   roundStatus,
   team1Name,
   team2Name,
@@ -18,6 +19,7 @@ export default function GameFlowPanel({
 }: {
   roomCode: string;
   adminToken: string;
+  roundNo: number;
   roundStatus: string;
   team1Name: string;
   team2Name: string;
@@ -32,6 +34,7 @@ export default function GameFlowPanel({
         <RoundControls
           roomCode={roomCode}
           adminToken={adminToken}
+          roundNo={roundNo}
           roundStatus={roundStatus}
           disabled={eventBusy}
         />

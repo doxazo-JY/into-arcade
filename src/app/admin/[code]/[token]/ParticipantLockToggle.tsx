@@ -38,11 +38,6 @@ export default function ParticipantLockToggle({
       >
         {locked ? "🔒 참가자 잠금 해제" : "참가자 화면 잠그기"}
       </button>
-      <p className="text-xs font-semibold text-ink-faint">
-        {locked
-          ? "팀 화면에서 뒤로가기로 팀 선택 화면에 못 돌아가요"
-          : "켜두면 팀이 뒤로가기로 팀 선택 화면에 못 돌아가요"}
-      </p>
       {error && <p className="text-xs font-bold text-lose-ink">{error}</p>}
     </div>
   );

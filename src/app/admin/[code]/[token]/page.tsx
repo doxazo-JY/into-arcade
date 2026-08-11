@@ -17,7 +17,6 @@ import { getCurrentRoom } from "@/lib/currentRoom";
 import SceneDecoration from "@/components/SceneDecoration";
 import RelinkRoomButton from "../../RelinkRoomButton";
 import ParticipantLockToggle from "./ParticipantLockToggle";
-import GameInProgressBadge from "@/components/GameInProgressBadge";
 
 // 실시간 게임 상태를 보여주는 페이지라 절대 캐싱하면 안 된다.
 export const dynamic = "force-dynamic";
@@ -63,6 +62,9 @@ export default async function AdminPage({
   }
 
   const isCurrent = currentRoom?.id === room.id;
+  const allJoined = room.teams.every(
+    (t) => t.name !== (t.teamNo === 1 ? "1팀" : "2팀")
+  );
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col gap-6 px-6 py-10">
@@ -194,10 +196,12 @@ export default async function AdminPage({
           <p className="flex items-center gap-2 font-black text-event-ink">
             <span className="icon-bolt" /> 배팅 배수 {Number(round.multiplier)}배 적용 중
           </p>
-          <UndoButton
-            label="이 이벤트 취소"
-            onUndo={undoEvent.bind(null, room.code, room.adminToken, activeMultiplierEvent.id)}
-          />
+          {round.status === "WAITING" && (
+            <UndoButton
+              label="이 이벤트 취소"
+              onUndo={undoEvent.bind(null, room.code, room.adminToken, activeMultiplierEvent.id)}
+            />
+          )}
         </div>
       )}
 
@@ -217,10 +221,15 @@ export default async function AdminPage({
         </>
       ) : (
         <>
+          {(!round || round.status === "WAITING") && !allJoined && (
+            <p className="text-center text-sm font-bold text-ink-faint">입장 안 한 팀이 있음</p>
+          )}
+
           <section className="flex justify-center">
             <GameFlowPanel
               roomCode={room.code}
               adminToken={room.adminToken}
+              roundNo={room.currentRound}
               roundStatus={round?.status ?? "WAITING"}
               team1Name={room.teams[0].name}
               team2Name={room.teams[1].name}
@@ -232,9 +241,6 @@ export default async function AdminPage({
           {round?.status === "BETTING" &&
             room.teams.every((t) => betByTeam.get(t.id)?.confirmed) && (
               <>
-                <section className="flex justify-center">
-                  <GameInProgressBadge />
-                </section>
                 <ResultForm
                   roomCode={room.code}
                   adminToken={room.adminToken}

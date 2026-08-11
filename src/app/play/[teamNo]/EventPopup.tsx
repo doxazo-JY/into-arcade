@@ -8,6 +8,7 @@ type EventViewProps = {
   myDelta: number | null;
   myPointsBefore: number | null;
   myPointsAfter: number | null;
+  multiplier: number | null;
 };
 
 export default function EventPopup({ event }: { event: EventViewProps | null }) {
@@ -58,7 +59,11 @@ export default function EventPopup({ event }: { event: EventViewProps | null }) 
                 </p>
               </>
             ) : (
-              <p className="text-sm font-semibold text-ink-soft">자세한 내용은 결과에 반영됩니다.</p>
+              <p className="text-sm font-semibold text-ink-soft">
+                이번 라운드는 배팅한 포인트의 {event.multiplier}배를
+                <br />
+                얻거나 잃게 됩니다.
+              </p>
             )}
             <button
               onClick={() => setShowPopup(false)}

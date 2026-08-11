@@ -120,6 +120,16 @@ export async function undoEvent(
     throw new Error("이미 되돌린 이벤트입니다");
   }
 
+  // 배팅 배수는 라운드가 시작(BETTING)된 뒤에 취소하면 이미 그 배수를 보고
+  // 배팅한 팀이 있을 수 있어 흐름이 꼬인다 — 라운드 시작 전(WAITING)에만
+  // 취소를 허용한다.
+  if (event.eventType === "BET_MULTIPLIER" && event.roundId) {
+    const round = await prisma.round.findUnique({ where: { id: event.roundId } });
+    if (round && round.status !== "WAITING") {
+      throw new Error("라운드가 시작된 뒤에는 배팅 배수 이벤트를 취소할 수 없습니다");
+    }
+  }
+
   const txs = await prisma.scoreTransaction.findMany({
     where: { eventLogId: event.id },
   });

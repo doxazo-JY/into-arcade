@@ -105,14 +105,27 @@ export default async function PlayPage({
 
       <div className="relative z-10 flex flex-col gap-6">
       <header className="flex flex-col items-center gap-3">
-        <span
-          className={
-            "inline-flex items-center gap-2 border-2 border-ink px-4 py-1.5 text-sm font-black text-white " +
-            (isRed ? "bg-team-red" : "bg-team-blue")
-          }
-        >
-          {me.name}
-        </span>
+        <div className="flex items-center gap-2 text-sm font-black">
+          <span
+            className={
+              isRed
+                ? "border-2 border-ink bg-team-red px-3 py-1 text-white"
+                : "px-3 py-1 text-ink-soft"
+            }
+          >
+            {isRed ? me.name : opponent.name}
+          </span>
+          <span className="text-xs font-bold text-ink-faint">vs</span>
+          <span
+            className={
+              !isRed
+                ? "border-2 border-ink bg-team-blue px-3 py-1 text-white"
+                : "px-3 py-1 text-ink-soft"
+            }
+          >
+            {isRed ? opponent.name : me.name}
+          </span>
+        </div>
         <p className="text-sm font-bold text-ink-soft">현재 보유 포인트</p>
         <p
           className={
@@ -221,7 +234,6 @@ export default async function PlayPage({
                   <span className="wait-dot h-2 w-2 rounded-full bg-ink-faint" />
                 </div>
                 <p className="font-bold text-ink-soft">라운드 시작을 기다리고 있어요</p>
-                <p className="text-xs font-semibold text-ink-faint">상대 팀: {opponent.name}</p>
               </div>
             ) : (
               <div
