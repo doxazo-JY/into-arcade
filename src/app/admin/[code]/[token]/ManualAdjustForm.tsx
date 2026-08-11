@@ -18,11 +18,13 @@ export default function ManualAdjustForm({
   const [mode, setMode] = useState<"delta" | "set">("delta");
   const [value, setValue] = useState("");
   const [memo, setMemo] = useState("");
+  const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const parsed = Number(value);
   const isValid = value !== "" && value !== "-" && Number.isInteger(parsed);
+  const teamName = teamNo === 1 ? team1Name : team2Name;
 
   function submit() {
     if (!isValid) return;
@@ -32,10 +34,41 @@ export default function ManualAdjustForm({
         await manualAdjustScore(roomCode, adminToken, teamNo, mode, parsed, memo || undefined);
         setValue("");
         setMemo("");
+        setConfirming(false);
       } catch (e) {
         setError(e instanceof Error ? e.message : "점수 수정에 실패했습니다");
+        setConfirming(false);
       }
     });
+  }
+
+  if (confirming) {
+    return (
+      <div className="flex flex-col gap-4 border-[3px] border-ink bg-paper-2 p-5 shadow-sticker-sm">
+        <p className="font-black">이 점수 수정을 적용하시겠습니까?</p>
+        <p className="font-semibold">
+          {teamName}: {mode === "delta" ? (parsed >= 0 ? "+" : "") + parsed.toLocaleString() + "P 조정" : parsed.toLocaleString() + "P로 변경"}
+        </p>
+        {memo && <p className="text-sm font-semibold text-ink-faint">메모: {memo}</p>}
+        {error && <p className="text-sm font-bold text-lose-ink">{error}</p>}
+        <div className="flex gap-3">
+          <button
+            disabled={isPending}
+            onClick={() => setConfirming(false)}
+            className="flex-1 border-2 border-ink bg-paper-2 py-3 font-black"
+          >
+            취소
+          </button>
+          <button
+            disabled={isPending}
+            onClick={submit}
+            className="flex-1 border-2 border-ink bg-ink py-3 font-black text-paper-2 shadow-sticker-sm disabled:opacity-50"
+          >
+            적용
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -97,7 +130,7 @@ export default function ManualAdjustForm({
       {error && <p className="text-sm font-bold text-lose-ink">{error}</p>}
       <button
         disabled={!isValid || isPending}
-        onClick={submit}
+        onClick={() => setConfirming(true)}
         className="border-2 border-ink bg-ink py-3 font-black text-paper-2 shadow-sticker-sm disabled:opacity-40"
       >
         적용

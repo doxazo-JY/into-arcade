@@ -99,7 +99,7 @@ export default async function AdminPage({
             href={`/admin/${room.code}/${room.adminToken}/history`}
             className="text-team-blue-ink underline"
           >
-            기록/되돌리기
+            기록
           </Link>
         </div>
       </header>
@@ -183,28 +183,6 @@ export default async function AdminPage({
         })}
       </section>
 
-      <section className="flex justify-center">
-        <ParticipantLockToggle
-          roomCode={room.code}
-          adminToken={room.adminToken}
-          locked={room.participantsLocked}
-        />
-      </section>
-
-      {activeMultiplierEvent && round && Number(round.multiplier) !== 1 && (
-        <div className="flex flex-col items-center gap-2 border-2 border-ink bg-event-tint px-4 py-3 text-center">
-          <p className="flex items-center gap-2 font-black text-event-ink">
-            <span className="icon-bolt" /> 배팅 배수 {Number(round.multiplier)}배 적용 중
-          </p>
-          {round.status === "WAITING" && (
-            <UndoButton
-              label="이 이벤트 취소"
-              onUndo={undoEvent.bind(null, room.code, room.adminToken, activeMultiplierEvent.id)}
-            />
-          )}
-        </div>
-      )}
-
       {room.status === "ENDED" ? (
         <>
           <FinalRanking
@@ -225,7 +203,21 @@ export default async function AdminPage({
             <p className="text-center text-sm font-bold text-ink-faint">입장 안 한 팀이 있음</p>
           )}
 
-          <section className="flex justify-center">
+          {activeMultiplierEvent && round && Number(round.multiplier) !== 1 && (
+            <div className="flex flex-col items-center gap-2 border-2 border-ink bg-event-tint px-4 py-3 text-center">
+              <p className="flex items-center gap-2 font-black text-event-ink">
+                <span className="icon-bolt" /> 배팅 배수 {Number(round.multiplier)}배 적용 중
+              </p>
+              {round.status === "WAITING" && (
+                <UndoButton
+                  label="이 이벤트 취소"
+                  onUndo={undoEvent.bind(null, room.code, room.adminToken, activeMultiplierEvent.id)}
+                />
+              )}
+            </div>
+          )}
+
+          <section className="w-full">
             <GameFlowPanel
               roomCode={room.code}
               adminToken={room.adminToken}
@@ -263,11 +255,16 @@ export default async function AdminPage({
         </>
       )}
 
-      {room.status !== "ENDED" && (
-        <section className="flex justify-center">
+      <section className="flex justify-center gap-3">
+        <ParticipantLockToggle
+          roomCode={room.code}
+          adminToken={room.adminToken}
+          locked={room.participantsLocked}
+        />
+        {room.status !== "ENDED" && (
           <GameControls roomCode={room.code} adminToken={room.adminToken} />
-        </section>
-      )}
+        )}
+      </section>
       </div>
     </main>
   );

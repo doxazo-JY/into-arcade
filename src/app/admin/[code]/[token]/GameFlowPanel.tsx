@@ -29,16 +29,7 @@ export default function GameFlowPanel({
   const [eventBusy, setEventBusy] = useState(false);
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      {roundStatus === "WAITING" && (
-        <RoundControls
-          roomCode={roomCode}
-          adminToken={adminToken}
-          roundNo={roundNo}
-          roundStatus={roundStatus}
-          disabled={eventBusy}
-        />
-      )}
+    <div className="flex w-full flex-col items-center gap-4">
       <div className="w-full">
         <EventPanel
           roomCode={roomCode}
@@ -51,6 +42,15 @@ export default function GameFlowPanel({
           onBusyChange={setEventBusy}
         />
       </div>
+      {roundStatus === "WAITING" && (
+        <RoundControls
+          roomCode={roomCode}
+          adminToken={adminToken}
+          roundNo={roundNo}
+          roundStatus={roundStatus}
+          disabled={eventBusy}
+        />
+      )}
     </div>
   );
 }

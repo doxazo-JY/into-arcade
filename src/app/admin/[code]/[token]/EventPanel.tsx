@@ -146,16 +146,16 @@ export default function EventPanel({
   if (roundStatus !== "WAITING") return null;
 
   return (
-    <div className="flex gap-3">
+    <div className="mx-auto flex w-full max-w-sm gap-3">
       <button
         onClick={() => setPicked("SWAP_ALL")}
-        className="flex flex-1 items-center justify-center gap-2 border-2 border-ink bg-paper-2 px-4 py-3 font-black text-event-ink shadow-sticker-sm"
+        className="flex flex-1 items-center justify-center gap-2 whitespace-nowrap border-2 border-ink bg-paper-2 px-4 py-3 font-black text-event-ink shadow-sticker-sm"
       >
         <span className="icon-bolt" /> 전체 점수 교환
       </button>
       <button
         onClick={() => setPicked("BET_MULTIPLIER")}
-        className="flex flex-1 items-center justify-center gap-2 border-2 border-ink bg-paper-2 px-4 py-3 font-black text-event-ink shadow-sticker-sm"
+        className="flex flex-1 items-center justify-center gap-2 whitespace-nowrap border-2 border-ink bg-paper-2 px-4 py-3 font-black text-event-ink shadow-sticker-sm"
       >
         <span className="icon-bolt" /> 배팅 배수
       </button>
