@@ -17,6 +17,7 @@ import { getCurrentRoom } from "@/lib/currentRoom";
 import SceneDecoration from "@/components/SceneDecoration";
 import RelinkRoomButton from "../../RelinkRoomButton";
 import ParticipantLockToggle from "./ParticipantLockToggle";
+import GameInProgressBadge from "@/components/GameInProgressBadge";
 
 // 실시간 게임 상태를 보여주는 페이지라 절대 캐싱하면 안 된다.
 export const dynamic = "force-dynamic";
@@ -47,11 +48,19 @@ export default async function AdminPage({
     getCurrentRoom(),
   ]);
 
-  const [bets, activeMultiplierEvent] = await Promise.all([
+  const [bets, results, activeMultiplierEvent] = await Promise.all([
     round ? prisma.bet.findMany({ where: { roundId: round.id } }) : [],
+    round && round.status === "RESOLVED"
+      ? prisma.roundResult.findMany({ where: { roundId: round.id, reverted: false } })
+      : [],
     getActiveMultiplierEvent(room.id, round?.id, round?.status),
   ]);
   const betByTeam = new Map(bets.map((b) => [b.teamId, b]));
+  const resultByTeam = new Map(results.map((r) => [r.teamId, r]));
+
+  function calcResultAmount(result: { finalBetAmount: bigint }) {
+    return Math.trunc(toPoints(result.finalBetAmount) * Number(round!.multiplier));
+  }
 
   const isCurrent = currentRoom?.id === room.id;
 
@@ -96,6 +105,7 @@ export default async function AdminPage({
       <section className="grid grid-cols-2 gap-4">
         {room.teams.map((team) => {
           const bet = betByTeam.get(team.id);
+          const result = resultByTeam.get(team.id);
           const isRed = team.teamNo === 1;
           const defaultTeamName = team.teamNo === 1 ? "1팀" : "2팀";
           const joined = team.name !== defaultTeamName;
@@ -116,15 +126,48 @@ export default async function AdminPage({
               <p className="text-2xl font-black tabular-nums">
                 {toPoints(team.currentPoints).toLocaleString()}P
               </p>
-              {round && round.status !== "WAITING" && (
-                <p className="text-sm font-semibold">
-                  배팅:{" "}
-                  {bet?.confirmed ? (
-                    <span className="font-black">{toPoints(bet.amount).toLocaleString()}P</span>
-                  ) : (
-                    <span className="text-ink-faint">대기 중</span>
-                  )}
-                </p>
+              {result ? (
+                <div className="animate-pop-in flex flex-col gap-1">
+                  <span
+                    className={
+                      "w-fit border-2 border-ink px-2 py-0.5 text-xs font-black " +
+                      (result.outcome === "WIN" ? "bg-win text-ink" : "bg-lose-tint text-lose-ink")
+                    }
+                  >
+                    {result.outcome === "WIN" ? "WIN!" : "LOSE!"}
+                  </span>
+                  <p className="text-sm font-semibold">
+                    {toPoints(result.finalBetAmount).toLocaleString()}P 배팅 ·{" "}
+                    <span
+                      className={
+                        "font-black " +
+                        (result.outcome === "WIN" ? "text-win-ink" : "text-lose-ink")
+                      }
+                    >
+                      {result.outcome === "WIN" ? "+" : "-"}
+                      {calcResultAmount(result).toLocaleString()}P
+                    </span>
+                  </p>
+                </div>
+              ) : (
+                round &&
+                round.status !== "WAITING" && (
+                  <p className="text-sm font-semibold">
+                    배팅:{" "}
+                    {bet?.confirmed ? (
+                      <span className="font-black">{toPoints(bet.amount).toLocaleString()}P</span>
+                    ) : (
+                      <span className="inline-flex items-center gap-2 text-ink-faint">
+                        대기 중
+                        <span className="flex gap-1">
+                          <span className="wait-dot h-1.5 w-1.5 rounded-full bg-ink-faint" />
+                          <span className="wait-dot h-1.5 w-1.5 rounded-full bg-ink-faint" />
+                          <span className="wait-dot h-1.5 w-1.5 rounded-full bg-ink-faint" />
+                        </span>
+                      </span>
+                    )}
+                  </p>
+                )
               )}
             </div>
           );
@@ -181,17 +224,22 @@ export default async function AdminPage({
 
           {round?.status === "BETTING" &&
             room.teams.every((t) => betByTeam.get(t.id)?.confirmed) && (
-              <ResultForm
-                roomCode={room.code}
-                adminToken={room.adminToken}
-                team1Name={room.teams[0].name}
-                team2Name={room.teams[1].name}
-                // 두 팀 다 확정된 상태라 이미 위에서 가져온 bets 맵의 금액이 곧
-                // 최종 배팅액이다 — computeFinalBetAmount로 다시 조회할 필요 없음.
-                team1FinalBet={toPoints(betByTeam.get(room.teams[0].id)!.amount)}
-                team2FinalBet={toPoints(betByTeam.get(room.teams[1].id)!.amount)}
-                multiplier={Number(round.multiplier)}
-              />
+              <>
+                <section className="flex justify-center">
+                  <GameInProgressBadge />
+                </section>
+                <ResultForm
+                  roomCode={room.code}
+                  adminToken={room.adminToken}
+                  team1Name={room.teams[0].name}
+                  team2Name={room.teams[1].name}
+                  // 두 팀 다 확정된 상태라 이미 위에서 가져온 bets 맵의 금액이 곧
+                  // 최종 배팅액이다 — computeFinalBetAmount로 다시 조회할 필요 없음.
+                  team1FinalBet={toPoints(betByTeam.get(room.teams[0].id)!.amount)}
+                  team2FinalBet={toPoints(betByTeam.get(room.teams[1].id)!.amount)}
+                  multiplier={Number(round.multiplier)}
+                />
+              </>
             )}
 
           {round?.status === "RESOLVED" && (

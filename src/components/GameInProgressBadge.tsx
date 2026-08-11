@@ -1,5 +1,5 @@
-// 두 팀 다 배팅을 확정하고 진행자 판정을 기다리는 상태 — 팀 화면과
-// 팀 화면에서 두 팀 다 배팅 확정 후 판정 대기 상태를 알려주는 배지.
+// 두 팀 다 배팅 확정 후 진행자 판정을 기다리는 상태를 알려주는 배지 —
+// 팀 화면과 진행자 화면 공통 사용.
 export default function GameInProgressBadge() {
   return (
     <div className="flex items-center justify-center gap-3 border-[3px] border-ink bg-paper-2 px-6 py-4 shadow-sticker-sm">
