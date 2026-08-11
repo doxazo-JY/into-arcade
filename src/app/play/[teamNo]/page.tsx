@@ -212,19 +212,32 @@ export default async function PlayPage({
             </div>
           )}
 
-          {(!round || round.status === "WAITING") && (
-            <div className="flex flex-col items-center gap-3 border-2 border-dashed border-ink-faint p-6 text-center">
-              <div className="flex gap-1.5">
-                <span className="wait-dot h-2 w-2 rounded-full bg-ink-faint" />
-                <span className="wait-dot h-2 w-2 rounded-full bg-ink-faint" />
-                <span className="wait-dot h-2 w-2 rounded-full bg-ink-faint" />
+          {(!round || round.status === "WAITING") &&
+            (opponentJoined ? (
+              <div className="flex flex-col items-center gap-3 border-2 border-dashed border-ink-faint p-6 text-center">
+                <div className="flex gap-1.5">
+                  <span className="wait-dot h-2 w-2 rounded-full bg-ink-faint" />
+                  <span className="wait-dot h-2 w-2 rounded-full bg-ink-faint" />
+                  <span className="wait-dot h-2 w-2 rounded-full bg-ink-faint" />
+                </div>
+                <p className="font-bold text-ink-soft">라운드 시작을 기다리고 있어요</p>
+                <p className="text-xs font-semibold text-ink-faint">상대 팀: {opponent.name}</p>
               </div>
-              <p className="font-bold text-ink-soft">
-                {opponentJoined ? "라운드 시작을 기다리고 있어요" : "상대팀 입장을 기다리고 있어요"}
-              </p>
-              <p className="text-xs font-semibold text-ink-faint">상대 팀: {opponent.name}</p>
-            </div>
-          )}
+            ) : (
+              <div
+                className={
+                  "flex flex-col items-center gap-3 border-[3px] border-ink bg-paper-2 p-6 text-center shadow-sticker-sm " +
+                  (opponent.teamNo === 1 ? "border-t-8 border-t-team-red" : "border-t-8 border-t-team-blue")
+                }
+              >
+                <div className="flex gap-1.5">
+                  <span className="wait-dot h-2.5 w-2.5 rounded-full bg-ink" />
+                  <span className="wait-dot h-2.5 w-2.5 rounded-full bg-ink" />
+                  <span className="wait-dot h-2.5 w-2.5 rounded-full bg-ink" />
+                </div>
+                <p className="font-black">{opponent.name} 입장을 기다리고 있어요</p>
+              </div>
+            ))}
         </>
       )}
       </div>
