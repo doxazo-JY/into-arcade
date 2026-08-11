@@ -70,7 +70,7 @@ export default function EventPanel({
 
   if (picked === "SWAP_ALL") {
     return (
-      <div className="flex flex-col gap-4 border-[3px] border-ink bg-paper-2 p-5 shadow-sticker-sm">
+      <div className="flex flex-col gap-4 border-[3px] border-ink bg-paper-2 p-5">
         <p className="flex items-center gap-2 font-black">
           <span className="icon-bolt text-event" /> 전체 점수 교환을 실행하시겠습니까?
         </p>
@@ -93,7 +93,7 @@ export default function EventPanel({
           <button
             disabled={isPending}
             onClick={confirmSwap}
-            className="flex-1 border-2 border-ink bg-event py-3 font-black text-white shadow-sticker-sm disabled:opacity-50"
+            className="flex-1 border-2 border-ink bg-event py-3 font-black text-white disabled:opacity-50"
           >
             실행
           </button>
@@ -104,7 +104,7 @@ export default function EventPanel({
 
   if (picked === "BET_MULTIPLIER") {
     return (
-      <div className="flex flex-col gap-4 border-[3px] border-ink bg-paper-2 p-5 shadow-sticker-sm">
+      <div className="flex flex-col gap-4 border-[3px] border-ink bg-paper-2 p-5">
         <p className="flex items-center gap-2 font-black">
           <span className="icon-bolt text-event" /> 배팅 배수 이벤트
         </p>
@@ -132,7 +132,7 @@ export default function EventPanel({
           <button
             disabled={isPending}
             onClick={confirmMultiplier}
-            className="flex-1 border-2 border-ink bg-event py-3 font-black text-white shadow-sticker-sm disabled:opacity-50"
+            className="flex-1 border-2 border-ink bg-event py-3 font-black text-white disabled:opacity-50"
           >
             실행
           </button>
@@ -149,13 +149,13 @@ export default function EventPanel({
     <div className="mx-auto flex w-full max-w-sm gap-3">
       <button
         onClick={() => setPicked("SWAP_ALL")}
-        className="flex flex-1 items-center justify-center gap-2 whitespace-nowrap border-2 border-ink bg-paper-2 px-4 py-3 font-black text-event-ink shadow-sticker-sm"
+        className="flex flex-1 items-center justify-center gap-2 whitespace-nowrap border-2 border-ink bg-paper-2 px-4 py-3 font-black text-event-ink"
       >
         <span className="icon-bolt" /> 전체 점수 교환
       </button>
       <button
         onClick={() => setPicked("BET_MULTIPLIER")}
-        className="flex flex-1 items-center justify-center gap-2 whitespace-nowrap border-2 border-ink bg-paper-2 px-4 py-3 font-black text-event-ink shadow-sticker-sm"
+        className="flex flex-1 items-center justify-center gap-2 whitespace-nowrap border-2 border-ink bg-paper-2 px-4 py-3 font-black text-event-ink"
       >
         <span className="icon-bolt" /> 배팅 배수
       </button>

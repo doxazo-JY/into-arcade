@@ -14,6 +14,14 @@ export type SwapPointsEntry = {
   after: number;
 };
 
+export type ManualAdjustHistoryEntry = {
+  teamNo: 1 | 2;
+  delta: number;
+  pointsBefore: number;
+  pointsAfter: number;
+  memo: string | null;
+};
+
 export type RoundHistoryEntry = {
   roundNo: number;
   team1: RoundHistoryTeamResult | null;
@@ -22,13 +30,15 @@ export type RoundHistoryEntry = {
   swapAllBefore: boolean;
   swapTeam1: SwapPointsEntry | null;
   swapTeam2: SwapPointsEntry | null;
+  manualAdjustsBefore: ManualAdjustHistoryEntry[];
+  manualAdjustsAfter: ManualAdjustHistoryEntry[];
 };
 
 // 게임 종료 후에는 배팅 금액을 공개해도 상관없으므로, 라운드별 배팅/결과
-// 내역을 정리해서 보여준다. 이벤트도 같이 표시한다 — 배팅 배수는 해당
-// 라운드의 multiplier 필드가 곧 그 정보라 별도 조회 없이 판단 가능하고,
-// 전체 점수 교환은 EventLog.roundId(항상 "그 다음 라운드"에 연결됨,
-// WAITING 상태에서만 실행 가능하므로)로 판단한다.
+// 내역을 정리해서 보여준다. 이벤트·점수 직접 수정도 실제 일어난 시점
+// 그대로 같이 표시한다 — 배팅 배수는 해당 라운드의 multiplier 필드가 곧
+// 그 정보라 별도 조회 없이 판단 가능하고, 전체 점수 교환과 점수 직접
+// 수정은 둘 다 roundId(그 조작이 일어났을 때의 "지금 라운드")로 판단한다.
 export async function getRoundHistory(
   roomId: string,
   team1Id: string,
@@ -49,6 +59,10 @@ export async function getRoundHistory(
   // 포인트 "전/후" 값은 다시 계산하지 않고 원장(ScoreTransaction)에서 그대로
   // 읽는다 — 되돌리기가 있어도 각 트랜잭션 자체는 그대로 남기 때문에(보정
   // 트랜잭션을 추가로 쌓는 방식) 그 시점 기준 정답 소스로 쓸 수 있다.
+  // 결과 정정(correctRoundResult)이 있으면 같은 라운드+팀에 BET_RESULT
+  // 트랜잭션이 여러 건 쌓이는데, 시간순으로 봤을 때 "이 라운드 시작 전
+  // 점수(가장 이른 pointsBefore) → 정정까지 다 반영된 최종 점수(가장 늦은
+  // pointsAfter)"만 보여줘야 중간의 틀렸던 상태가 안 섞여 보인다.
   const [betTxs, swapTxs] = await Promise.all([
     prisma.scoreTransaction.findMany({
       where: {
@@ -57,6 +71,7 @@ export async function getRoundHistory(
         sourceType: "BET_RESULT",
         roundId: { not: null },
       },
+      orderBy: { createdAt: "asc" },
       select: { roundId: true, teamId: true, pointsBefore: true, pointsAfter: true },
     }),
     swapEvents.length
@@ -72,12 +87,16 @@ export async function getRoundHistory(
       : Promise.resolve([]),
   ]);
 
-  const betTxMap = new Map(
-    betTxs.map((t) => [
-      `${t.roundId}-${t.teamId}`,
-      { before: toPoints(t.pointsBefore), after: toPoints(t.pointsAfter) },
-    ])
-  );
+  const betTxMap = new Map<string, { before: number; after: number }>();
+  for (const t of betTxs) {
+    const key = `${t.roundId}-${t.teamId}`;
+    const existing = betTxMap.get(key);
+    if (existing) {
+      existing.after = toPoints(t.pointsAfter);
+    } else {
+      betTxMap.set(key, { before: toPoints(t.pointsBefore), after: toPoints(t.pointsAfter) });
+    }
+  }
 
   const swapPointsByEvent = new Map<string, { team1?: SwapPointsEntry; team2?: SwapPointsEntry }>();
   for (const t of swapTxs) {
@@ -117,8 +136,53 @@ export async function getRoundHistory(
     };
   };
 
+  // 점수 직접 수정은 조작 시점의 "지금 라운드"(roundId)에 묶여 저장된다
+  // (manualAdjustScores 참고). 다만 "지금 라운드"는 이미 결과가 확정된
+  // (RESOLVED) 라운드일 수도 있어서 — 예: 라운드 1 결과 판정 후 "다음
+  // 라운드"를 누르기 전에 수정한 경우 — 무조건 그 라운드 행 앞에 끼워
+  // 넣으면 실제로는 결과가 나온 "뒤"에 일어난 조작이 "전"에 일어난 것처럼
+  // 보인다. 그 라운드의 결과 확정 시각(RoundResult.appliedAt)과 비교해서
+  // 그 전이면 라운드 행 앞에, 후면 라운드 행 뒤에 넣는다.
+  const manualAdjustTxs = await prisma.scoreTransaction.findMany({
+    where: {
+      roomId,
+      teamId: { in: [team1Id, team2Id] },
+      sourceType: "MANUAL_ADJUST",
+      roundId: { not: null },
+    },
+    orderBy: { createdAt: "asc" },
+    select: { roundId: true, teamId: true, pointsBefore: true, pointsDelta: true, pointsAfter: true, memo: true, createdAt: true },
+  });
+  const resolvedAtByRound = new Map(
+    rounds
+      .filter((r) => r.roundResults.length > 0)
+      .map((r) => [r.id, r.roundResults[0].appliedAt])
+  );
+  const manualAdjustsBeforeByRound = new Map<string, ManualAdjustHistoryEntry[]>();
+  const manualAdjustsAfterByRound = new Map<string, ManualAdjustHistoryEntry[]>();
+  for (const tx of manualAdjustTxs) {
+    const entry: ManualAdjustHistoryEntry = {
+      teamNo: tx.teamId === team1Id ? 1 : 2,
+      delta: toPoints(tx.pointsDelta),
+      pointsBefore: toPoints(tx.pointsBefore),
+      pointsAfter: toPoints(tx.pointsAfter),
+      memo: tx.memo,
+    };
+    const resolvedAt = resolvedAtByRound.get(tx.roundId!);
+    const map =
+      resolvedAt && tx.createdAt > resolvedAt ? manualAdjustsAfterByRound : manualAdjustsBeforeByRound;
+    const list = map.get(tx.roundId!) ?? [];
+    list.push(entry);
+    map.set(tx.roundId!, list);
+  }
+
   return rounds
-    .filter((r) => r.roundResults.length > 0)
+    .filter(
+      (r) =>
+        r.roundResults.length > 0 ||
+        manualAdjustsBeforeByRound.has(r.id) ||
+        manualAdjustsAfterByRound.has(r.id)
+    )
     .map((r) => {
       const multiplier = Number(r.multiplier);
       const swap = swapPointsByRound.get(r.id);
@@ -130,6 +194,8 @@ export async function getRoundHistory(
         swapAllBefore: swapRoundIds.has(r.id),
         swapTeam1: swap?.team1 ?? null,
         swapTeam2: swap?.team2 ?? null,
+        manualAdjustsBefore: manualAdjustsBeforeByRound.get(r.id) ?? [],
+        manualAdjustsAfter: manualAdjustsAfterByRound.get(r.id) ?? [],
       };
     });
 }

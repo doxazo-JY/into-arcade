@@ -48,7 +48,7 @@ export default function ResultForm({
     const d1 = delta(winner === 1, team1FinalBet);
     const d2 = delta(winner === 2, team2FinalBet);
     return (
-      <div className="flex flex-col gap-4 border-[3px] border-ink bg-paper-2 p-5 shadow-sticker-sm">
+      <div className="flex flex-col gap-4 border-[3px] border-ink bg-paper-2 p-5">
         <p className="font-black">이 결과를 적용하시겠습니까?</p>
         <p className="font-semibold">
           {team1Name}: {winner === 1 ? "승리" : "패배"} /{" "}
@@ -75,7 +75,7 @@ export default function ResultForm({
           <button
             disabled={isPending}
             onClick={submit}
-            className="flex-1 border-2 border-ink bg-win py-3 font-black text-ink shadow-sticker-sm disabled:opacity-50"
+            className="flex-1 border-2 border-ink bg-win py-3 font-black text-ink disabled:opacity-50"
           >
             결과 적용
           </button>
@@ -85,7 +85,7 @@ export default function ResultForm({
   }
 
   return (
-    <div className="flex flex-col gap-4 border-[3px] border-ink bg-paper-2 p-5 shadow-sticker-sm">
+    <div className="flex flex-col gap-4 border-[3px] border-ink bg-paper-2 p-5">
       <p className="font-black">어느 팀이 승리했나요?</p>
       <div className="grid grid-cols-2 gap-3">
         <button
@@ -111,7 +111,7 @@ export default function ResultForm({
       <button
         disabled={!winner}
         onClick={() => setConfirming(true)}
-        className="border-2 border-ink bg-win py-3 font-black text-ink shadow-sticker-sm disabled:opacity-40"
+        className="border-2 border-ink bg-win py-3 font-black text-ink disabled:opacity-40"
       >
         결과 적용
       </button>

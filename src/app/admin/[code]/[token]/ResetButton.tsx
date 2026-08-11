@@ -41,7 +41,7 @@ export default function ResetButton({
 
   if (step === "confirm1") {
     return (
-      <div className="flex flex-col gap-3 border-[3px] border-red-600 bg-paper-2 p-4 text-center shadow-sticker-sm">
+      <div className="flex flex-col gap-3 border-[3px] border-red-600 bg-paper-2 p-4 text-center">
         <p className="text-sm font-black text-red-600">
           팀 점수, 라운드, 배팅/결과/이벤트 기록이 모두 삭제됩니다. 정말 초기화할까요?
         </p>
@@ -64,7 +64,7 @@ export default function ResetButton({
   }
 
   return (
-    <div className="flex flex-col gap-3 border-[3px] border-red-600 bg-paper-2 p-4 text-center shadow-sticker-sm">
+    <div className="flex flex-col gap-3 border-[3px] border-red-600 bg-paper-2 p-4 text-center">
       <p className="text-sm font-black text-red-600">
         초기화를 진행하려면 &lsquo;초기화&rsquo;를 입력해주세요.
       </p>

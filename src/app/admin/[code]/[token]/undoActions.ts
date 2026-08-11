@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { assertAdmin } from "@/lib/admin";
+import { assertAdmin, getCurrentRound } from "@/lib/admin";
 import { applyScoreDelta } from "@/lib/game";
 import { revalidatePath } from "next/cache";
 
@@ -12,38 +12,51 @@ function refresh(roomCode: string, adminToken: string) {
 
 type UndoResult = { ok: boolean; warning?: string; laterCount?: number };
 
-export async function manualAdjustScore(
+// 1팀/2팀을 따로 두 번 수정하던 걸 한 번에 같이 조정할 수 있게 한다 —
+// 값을 입력한 팀만 골라 하나의 트랜잭션으로 함께 적용한다.
+export async function manualAdjustScores(
   roomCode: string,
   adminToken: string,
-  teamNo: number,
   mode: "delta" | "set",
-  value: number,
+  adjustments: { teamNo: 1 | 2; value: number }[],
   memo?: string
 ) {
   const room = await assertAdmin(roomCode, adminToken);
   if (room.status === "ENDED") {
     throw new Error("게임이 종료된 방은 점수를 수정할 수 없습니다");
   }
-  if (!Number.isFinite(value)) {
+  if (adjustments.length === 0) {
+    throw new Error("수정할 팀을 선택해주세요");
+  }
+  if (adjustments.some((a) => !Number.isFinite(a.value))) {
     throw new Error("올바른 값을 입력해주세요");
   }
 
-  const team = await prisma.team.findFirst({ where: { roomId: room.id, teamNo } });
-  if (!team) {
-    throw new Error("팀을 찾을 수 없습니다");
-  }
-
-  const delta =
-    mode === "delta" ? BigInt(Math.trunc(value)) : BigInt(Math.trunc(value)) - team.currentPoints;
+  const teams = await prisma.team.findMany({ where: { roomId: room.id } });
+  // 이벤트(전체 점수 교환)처럼 "지금 라운드"에 묶어둬야, 게임 종료 후
+  // 라운드별 결과표에 실제로 일어난 시점 그대로 끼워 넣어 보여줄 수 있다.
+  const currentRound = await getCurrentRound(room.id, room.currentRound);
 
   await prisma.$transaction(async (tx) => {
-    await applyScoreDelta(tx, {
-      roomId: room.id,
-      teamId: team.id,
-      delta,
-      sourceType: "MANUAL_ADJUST",
-      memo: memo || null,
-    });
+    for (const adjustment of adjustments) {
+      const team = teams.find((t) => t.teamNo === adjustment.teamNo);
+      if (!team) {
+        throw new Error("팀을 찾을 수 없습니다");
+      }
+      const delta =
+        mode === "delta"
+          ? BigInt(Math.trunc(adjustment.value))
+          : BigInt(Math.trunc(adjustment.value)) - team.currentPoints;
+
+      await applyScoreDelta(tx, {
+        roomId: room.id,
+        roundId: currentRound.id,
+        teamId: team.id,
+        delta,
+        sourceType: "MANUAL_ADJUST",
+        memo: memo || null,
+      });
+    }
   });
 
   refresh(roomCode, adminToken);

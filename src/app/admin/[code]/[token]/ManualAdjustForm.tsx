@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { manualAdjustScore } from "./undoActions";
+import { manualAdjustScores } from "./undoActions";
 
 export default function ManualAdjustForm({
   roomCode,
@@ -14,25 +14,39 @@ export default function ManualAdjustForm({
   team1Name: string;
   team2Name: string;
 }) {
-  const [teamNo, setTeamNo] = useState<1 | 2>(1);
   const [mode, setMode] = useState<"delta" | "set">("delta");
-  const [value, setValue] = useState("");
+  const [value1, setValue1] = useState("");
+  const [value2, setValue2] = useState("");
   const [memo, setMemo] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const parsed = Number(value);
-  const isValid = value !== "" && value !== "-" && Number.isInteger(parsed);
-  const teamName = teamNo === 1 ? team1Name : team2Name;
+  // 빈 칸은 "이 팀은 안 건드림"이라는 뜻이라, 값을 입력한 팀만 골라
+  // adjustments 배열로 만든다.
+  const adjustments = [
+    { teamNo: 1 as const, name: team1Name, raw: value1 },
+    { teamNo: 2 as const, name: team2Name, raw: value2 },
+  ]
+    .filter((a) => a.raw !== "" && a.raw !== "-")
+    .map((a) => ({ ...a, value: Number(a.raw) }));
+
+  const isValid = adjustments.length > 0 && adjustments.every((a) => Number.isInteger(a.value));
 
   function submit() {
     if (!isValid) return;
     setError(null);
     startTransition(async () => {
       try {
-        await manualAdjustScore(roomCode, adminToken, teamNo, mode, parsed, memo || undefined);
-        setValue("");
+        await manualAdjustScores(
+          roomCode,
+          adminToken,
+          mode,
+          adjustments.map((a) => ({ teamNo: a.teamNo, value: a.value })),
+          memo || undefined
+        );
+        setValue1("");
+        setValue2("");
         setMemo("");
         setConfirming(false);
       } catch (e) {
@@ -44,11 +58,16 @@ export default function ManualAdjustForm({
 
   if (confirming) {
     return (
-      <div className="flex flex-col gap-4 border-[3px] border-ink bg-paper-2 p-5 shadow-sticker-sm">
+      <div className="flex flex-col gap-4 border-[3px] border-ink bg-paper-2 p-5">
         <p className="font-black">이 점수 수정을 적용하시겠습니까?</p>
-        <p className="font-semibold">
-          {teamName}: {mode === "delta" ? (parsed >= 0 ? "+" : "") + parsed.toLocaleString() + "P 조정" : parsed.toLocaleString() + "P로 변경"}
-        </p>
+        {adjustments.map((a) => (
+          <p key={a.teamNo} className="font-semibold">
+            {a.name}:{" "}
+            {mode === "delta"
+              ? (a.value >= 0 ? "+" : "") + a.value.toLocaleString() + "P 조정"
+              : a.value.toLocaleString() + "P로 변경"}
+          </p>
+        ))}
         {memo && <p className="text-sm font-semibold text-ink-faint">메모: {memo}</p>}
         {error && <p className="text-sm font-bold text-lose-ink">{error}</p>}
         <div className="flex gap-3">
@@ -62,7 +81,7 @@ export default function ManualAdjustForm({
           <button
             disabled={isPending}
             onClick={submit}
-            className="flex-1 border-2 border-ink bg-ink py-3 font-black text-paper-2 shadow-sticker-sm disabled:opacity-50"
+            className="flex-1 border-2 border-ink bg-ink py-3 font-black text-paper-2 disabled:opacity-50"
           >
             적용
           </button>
@@ -72,28 +91,8 @@ export default function ManualAdjustForm({
   }
 
   return (
-    <div className="flex flex-col gap-3 border-[3px] border-ink bg-paper-2 p-4 shadow-sticker-sm">
+    <div className="flex flex-col gap-3 border-[3px] border-ink bg-paper-2 p-4">
       <p className="font-black">점수 직접 수정</p>
-      <div className="flex gap-2">
-        <button
-          onClick={() => setTeamNo(1)}
-          className={
-            "flex-1 border-2 border-ink py-2 text-sm font-bold " +
-            (teamNo === 1 ? "bg-team-red text-white" : "bg-paper-2")
-          }
-        >
-          {team1Name}
-        </button>
-        <button
-          onClick={() => setTeamNo(2)}
-          className={
-            "flex-1 border-2 border-ink py-2 text-sm font-bold " +
-            (teamNo === 2 ? "bg-team-blue text-white" : "bg-paper-2")
-          }
-        >
-          {team2Name}
-        </button>
-      </div>
       <div className="flex gap-2">
         <button
           onClick={() => setMode("delta")}
@@ -114,13 +113,26 @@ export default function ManualAdjustForm({
           특정 값으로 변경
         </button>
       </div>
-      <input
-        value={value}
-        onChange={(e) => setValue(e.target.value.replace(/(?!^-)[^0-9]/g, ""))}
-        inputMode="numeric"
-        placeholder={mode === "delta" ? "예: 100 또는 -100" : "예: -500"}
-        className="border-2 border-ink px-3 py-2"
-      />
+      <label className="flex flex-col gap-1">
+        <span className="text-sm font-bold">{team1Name}</span>
+        <input
+          value={value1}
+          onChange={(e) => setValue1(e.target.value.replace(/(?!^-)[^0-9]/g, ""))}
+          inputMode="numeric"
+          placeholder={mode === "delta" ? "예: 100 또는 -100 (안 건드리려면 비워둠)" : "예: -500"}
+          className="border-2 border-ink px-3 py-2"
+        />
+      </label>
+      <label className="flex flex-col gap-1">
+        <span className="text-sm font-bold">{team2Name}</span>
+        <input
+          value={value2}
+          onChange={(e) => setValue2(e.target.value.replace(/(?!^-)[^0-9]/g, ""))}
+          inputMode="numeric"
+          placeholder={mode === "delta" ? "예: 100 또는 -100 (안 건드리려면 비워둠)" : "예: -500"}
+          className="border-2 border-ink px-3 py-2"
+        />
+      </label>
       <input
         value={memo}
         onChange={(e) => setMemo(e.target.value)}
@@ -131,7 +143,7 @@ export default function ManualAdjustForm({
       <button
         disabled={!isValid || isPending}
         onClick={() => setConfirming(true)}
-        className="border-2 border-ink bg-ink py-3 font-black text-paper-2 shadow-sticker-sm disabled:opacity-40"
+        className="border-2 border-ink bg-ink py-3 font-black text-paper-2 disabled:opacity-40"
       >
         적용
       </button>

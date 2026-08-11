@@ -95,6 +95,14 @@ export default async function PlayPage({
 
   const resultAmount = myResult ? calcResultAmount(myResult) : 0;
   const myPoints = toPoints(me.currentPoints);
+  const roundHistory =
+    room.status === "ENDED"
+      ? await getRoundHistory(
+          room.id,
+          room.teams.find((t) => t.teamNo === 1)!.id,
+          room.teams.find((t) => t.teamNo === 2)!.id
+        )
+      : null;
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 py-8">
@@ -149,11 +157,7 @@ export default async function PlayPage({
           <RoundHistoryTable
             team1Name={room.teams.find((t) => t.teamNo === 1)!.name}
             team2Name={room.teams.find((t) => t.teamNo === 2)!.name}
-            entries={await getRoundHistory(
-              room.id,
-              room.teams.find((t) => t.teamNo === 1)!.id,
-              room.teams.find((t) => t.teamNo === 2)!.id
-            )}
+            entries={roundHistory!}
           />
         </>
       ) : (

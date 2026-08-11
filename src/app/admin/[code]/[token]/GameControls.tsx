@@ -14,7 +14,7 @@ export default function GameControls({
   const [error, setError] = useState<string | null>(null);
 
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className="flex w-full flex-1 flex-col items-center gap-2">
       <button
         disabled={isPending}
         onClick={() => {
@@ -28,7 +28,7 @@ export default function GameControls({
             }
           });
         }}
-        className="border-2 border-ink bg-paper-2 px-5 py-2 text-sm font-black"
+        className="w-full border-2 border-ink bg-paper-2 px-5 py-2 text-sm font-black"
       >
         게임 종료
       </button>

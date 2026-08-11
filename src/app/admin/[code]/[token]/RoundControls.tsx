@@ -24,7 +24,7 @@ export default function RoundControls({
     <button
       disabled={isPending || disabled}
       onClick={() => startTransition(() => startRound(roomCode, adminToken))}
-      className="border-2 border-ink bg-team-blue px-6 py-3 font-black text-white shadow-sticker-sm disabled:opacity-50"
+      className="border-2 border-ink bg-team-blue px-6 py-3 font-black text-white disabled:opacity-50"
     >
       {roundNo === 1 ? "라운드 시작" : "다음 라운드"}
     </button>

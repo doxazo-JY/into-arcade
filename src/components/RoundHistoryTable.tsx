@@ -1,4 +1,4 @@
-import type { RoundHistoryEntry, SwapPointsEntry } from "@/lib/roundHistory";
+import type { ManualAdjustHistoryEntry, RoundHistoryEntry, SwapPointsEntry } from "@/lib/roundHistory";
 
 function Cell({ result }: { result: RoundHistoryEntry["team1"] }) {
   if (!result) return <span className="text-ink-faint">-</span>;
@@ -23,6 +23,31 @@ function SwapCell({ points }: { points: SwapPointsEntry | null }) {
     <span className="text-xs font-semibold text-ink-faint">
       {points.before.toLocaleString()}P → {points.after.toLocaleString()}P
     </span>
+  );
+}
+
+function ManualAdjustCell({
+  entries,
+  teamNo,
+}: {
+  entries: ManualAdjustHistoryEntry[];
+  teamNo: 1 | 2;
+}) {
+  const mine = entries.filter((m) => m.teamNo === teamNo);
+  if (mine.length === 0) return null;
+  return (
+    <>
+      {mine.map((m, i) => (
+        <span key={i} className="block text-xs font-semibold text-ink-faint">
+          <span className={m.delta >= 0 ? "text-win-ink" : "text-lose-ink"}>
+            {m.delta >= 0 ? "+" : ""}
+            {m.delta.toLocaleString()}P
+          </span>{" "}
+          ({m.pointsBefore.toLocaleString()}P → {m.pointsAfter.toLocaleString()}P)
+          {m.memo && <> · {m.memo}</>}
+        </span>
+      ))}
+    </>
   );
 }
 
@@ -69,8 +94,28 @@ export default function RoundHistoryTable({
                 </tr>
               );
             }
+            if (e.manualAdjustsBefore.length > 0) {
+              rows.push(
+                <tr key={`${e.roundNo}-manual`} className="border-b border-line">
+                  <td className="px-3 py-1.5 text-center text-xs font-semibold text-ink-faint">
+                    점수 직접 수정
+                  </td>
+                  <td className="px-3 py-1.5 text-center">
+                    <ManualAdjustCell entries={e.manualAdjustsBefore} teamNo={1} />
+                  </td>
+                  <td className="px-3 py-1.5 text-center">
+                    <ManualAdjustCell entries={e.manualAdjustsBefore} teamNo={2} />
+                  </td>
+                </tr>
+              );
+            }
             rows.push(
-              <tr key={e.roundNo} className="border-b border-line last:border-0">
+              <tr
+                key={e.roundNo}
+                className={
+                  "border-b border-line " + (e.manualAdjustsAfter.length === 0 ? "last:border-0" : "")
+                }
+              >
                 <td className="whitespace-nowrap px-3 py-2 font-black">
                   R{e.roundNo}
                   {e.multiplier && (
@@ -85,6 +130,21 @@ export default function RoundHistoryTable({
                 </td>
               </tr>
             );
+            if (e.manualAdjustsAfter.length > 0) {
+              rows.push(
+                <tr key={`${e.roundNo}-manual-after`} className="border-b border-line last:border-0">
+                  <td className="px-3 py-1.5 text-center text-xs font-semibold text-ink-faint">
+                    점수 직접 수정
+                  </td>
+                  <td className="px-3 py-1.5 text-center">
+                    <ManualAdjustCell entries={e.manualAdjustsAfter} teamNo={1} />
+                  </td>
+                  <td className="px-3 py-1.5 text-center">
+                    <ManualAdjustCell entries={e.manualAdjustsAfter} teamNo={2} />
+                  </td>
+                </tr>
+              );
+            }
             return rows;
           })}
         </tbody>

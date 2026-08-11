@@ -4,6 +4,7 @@ import Link from "next/link";
 import { toPoints } from "@/lib/points";
 import ResultForm from "./ResultForm";
 import NextRoundButton from "./NextRoundButton";
+import CorrectResultButton from "./CorrectResultButton";
 import GameFlowPanel from "./GameFlowPanel";
 import GameControls from "./GameControls";
 import PollRefresh from "@/components/PollRefresh";
@@ -65,6 +66,10 @@ export default async function AdminPage({
   const allJoined = room.teams.every(
     (t) => t.name !== (t.teamNo === 1 ? "1팀" : "2팀")
   );
+  const roundHistory =
+    room.status === "ENDED"
+      ? await getRoundHistory(room.id, room.teams[0].id, room.teams[1].id)
+      : null;
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col gap-6 px-6 py-10">
@@ -99,7 +104,7 @@ export default async function AdminPage({
             href={`/admin/${room.code}/${room.adminToken}/history`}
             className="text-team-blue-ink underline"
           >
-            기록
+            기록/점수 수동 수정
           </Link>
         </div>
       </header>
@@ -115,7 +120,7 @@ export default async function AdminPage({
             <div
               key={team.id}
               className={
-                "flex flex-col gap-2 border-[3px] border-ink bg-paper-2 p-4 shadow-sticker-sm " +
+                "flex flex-col gap-2 border-[3px] border-ink bg-paper-2 p-4 " +
                 (isRed ? "border-t-8 border-t-team-red" : "border-t-8 border-t-team-blue")
               }
             >
@@ -194,7 +199,7 @@ export default async function AdminPage({
           <RoundHistoryTable
             team1Name={room.teams[0].name}
             team2Name={room.teams[1].name}
-            entries={await getRoundHistory(room.id, room.teams[0].id, room.teams[1].id)}
+            entries={roundHistory!}
           />
         </>
       ) : (
@@ -248,14 +253,20 @@ export default async function AdminPage({
             )}
 
           {round?.status === "RESOLVED" && (
-            <section className="flex justify-center">
+            <section className="flex flex-col items-center gap-2">
               <NextRoundButton roomCode={room.code} adminToken={room.adminToken} />
+              <CorrectResultButton
+                roomCode={room.code}
+                adminToken={room.adminToken}
+                team1Name={room.teams[0].name}
+                team2Name={room.teams[1].name}
+              />
             </section>
           )}
         </>
       )}
 
-      <section className="flex justify-center gap-3">
+      <section className="mx-auto flex w-full max-w-sm gap-3">
         <ParticipantLockToggle
           roomCode={room.code}
           adminToken={room.adminToken}

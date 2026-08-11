@@ -53,7 +53,7 @@ export default async function HistoryPage({
       <SceneDecoration />
       <div className="relative z-10 flex flex-col gap-6">
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-black">기록</h1>
+        <h1 className="text-2xl font-black">기록/점수 수동 수정</h1>
         <Link
           href={`/admin/${room.code}/${room.adminToken}`}
           className="text-sm font-bold text-team-blue-ink underline"
