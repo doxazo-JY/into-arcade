@@ -97,6 +97,8 @@ export default async function AdminPage({
         {room.teams.map((team) => {
           const bet = betByTeam.get(team.id);
           const isRed = team.teamNo === 1;
+          const defaultTeamName = team.teamNo === 1 ? "1팀" : "2팀";
+          const joined = team.name !== defaultTeamName;
           return (
             <div
               key={team.id}
@@ -106,6 +108,11 @@ export default async function AdminPage({
               }
             >
               <span className="font-black">{team.name}</span>
+              {joined ? (
+                <p className="text-xs font-semibold text-win-ink">✓ 입장 완료</p>
+              ) : (
+                <p className="text-xs font-semibold text-ink-faint">입장 전</p>
+              )}
               <p className="text-2xl font-black tabular-nums">
                 {toPoints(team.currentPoints).toLocaleString()}P
               </p>

@@ -44,6 +44,9 @@ export default async function PlayPage({
   const opponent = room.teams.find((t) => t.id !== me.id)!;
   const isRed = me.teamNo === 1;
 
+  const opponentDefaultName = opponent.teamNo === 1 ? "1팀" : "2팀";
+  const opponentJoined = opponent.name !== opponentDefaultName;
+
   const defaultName = teamNo === 1 ? "1팀" : "2팀";
   if (me.name === defaultName) {
     return (
@@ -211,7 +214,9 @@ export default async function PlayPage({
 
           {(!round || round.status === "WAITING") && (
             <div className="flex flex-col items-center gap-2 border-2 border-dashed border-ink-faint p-6 text-center">
-              <p className="font-bold text-ink-soft">라운드 시작을 기다리고 있어요</p>
+              <p className="font-bold text-ink-soft">
+                {opponentJoined ? "라운드 시작을 기다리고 있어요" : "상대팀 입장을 기다리고 있어요"}
+              </p>
               <p className="text-xs font-semibold text-ink-faint">상대 팀: {opponent.name}</p>
             </div>
           )}
